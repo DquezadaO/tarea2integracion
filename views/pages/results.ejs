@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include ("../partials/header.ejs") %>
+</head>
+
+<body>
+
+<%- include ("../partials/nav.ejs") %>
+
+<div class="jumbotron text-center">
+  <div class="container">
+    <a href="/" class="lang-logo">
+      <img src="/lang-logo.jpg">
+    </a>
+    <h2>BetterBreak Wiki</h2>
+    <h4>La fuente más confiable de información de Braking Bad y Better Call Saul</h4>
+    <h6>Powered by: <a href="https://tarea-1-breaking-bad.herokuapp.com">tarea-1-breaking-bad</a></h6>
+  </div>
+</div>
+
+<div class="container content">
+  <h1>Resultado de la búsqueda: "<%- name %>" - Página <%- page %></h1>
+  <hr>
+  <div class="row titles">
+    <div class="col-md-12">
+      <ul style="list-style-type:none;">
+        <% results.forEach(x=> {%>
+        <li><h2><a href="/characters?name=<%- x.name %>"><%- x.name %></a></h2></li>
+        <% }) %>
+      </ul>
+    </div>
+  </div>
+</div>
+<% if (results.length == 10) {%>
+<h3>
+  <a href="/search?name=<%- name %>&page=2">Siguiente</a>
+</h3>
+<% } %>
+
+
+</body>
+</html>

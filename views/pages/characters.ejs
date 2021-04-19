@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include ("../partials/header.ejs") %>
+</head>
+
+<body>
+
+<%- include ("../partials/nav.ejs") %>
+
+<div class="jumbotron text-center">
+  <div class="container">
+    <a href="/" class="lang-logo">
+      <img src="/lang-logo.jpg">
+    </a>
+    <h2>BetterBreak Wiki</h2>
+    <h4>La fuente más confiable de información de Braking Bad y Better Call Saul</h4>
+    <h6>Powered by: <a href="https://tarea-1-breaking-bad.herokuapp.com">tarea-1-breaking-bad</a></h6>
+  </div>
+</div>
+
+<div class="container content">
+  <div class="row">
+    <div class="col-md-4">
+        <img class="foto" src="<%- character.img %>">
+        <h1><%- character.name %></h1>
+        <h2>A.K.A.: <%- character.nickname %></h2>
+        <h3>Ocupación: <%- character.occupation %></h3>
+        <h3>Status: <%- character.status %></h3>
+        <h3>Actor/Actriz: <%- character.portrayed %></h3>
+        <h3>Series: <%- character.category %></h3>
+    </div>
+    <div class="col-md-4">
+      <h1>Apariciones en Breaking Bad:</h1>
+      <hr>
+      <div class="row sub-titles">
+        <ul style="list-style-type:none;">
+          <% character.appearance.forEach(x=> {%>
+          <li><h2><a href="/episodes?season=<%- x %>&show=Breaking-Bad"><%- x %></a></h2></li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <h1>Apariciones en Better Call Saul:</h1>
+      <hr>
+      <div class="row sub-titles">
+        <ul style="list-style-type:none;">
+          <% character.better_call_saul_appearance.forEach(x=> {%>
+          <li><h2><a href="/episodes?season=<%- x %>&show=Better-Call-Saul"><%- x %></a></h2></li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>
