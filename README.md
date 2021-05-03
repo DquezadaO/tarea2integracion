@@ -4,6 +4,16 @@ A barebones Node.js app using [Express 4](http://expressjs.com/).
 
 This application supports the [Getting Started on Heroku with Node.js](https://devcenter.heroku.com/articles/getting-started-with-nodejs) article - check it out.
 
+## About BDD
+
+This app must have its databases created manually in postgresql before use:
+
+``sql
+create table artists (id integer, name text, age integer);
+create table albums (id integer, name text, genre text, artist_id integer);
+create table tracks (id integer, name text, duration float, times_played integer, album_id integer);
+``
+
 ## Running Locally
 
 Make sure you have [Node.js](http://nodejs.org/) and the [Heroku CLI](https://cli.heroku.com/) installed.
