@@ -18,7 +18,7 @@ function albumSerializer(album) {
   return {
     name: album.name,
     genre: album.genre,
-    artist: `https://tarea-2-integracion.herokuapp.com/api/artists/${album.artistId}/albums`,
+    artist: `https://tarea-2-integracion.herokuapp.com/api/artists/${album.artist_id}/albums`,
     tracks: `https://tarea-2-integracion.herokuapp.com/api/albums/${album.id}/tracks`,
     self: `https://tarea-2-integracion.herokuapp.com/api/albums/${album.id}`,
     artistId: album.artistId,
@@ -30,9 +30,9 @@ function trackSerializer(track, artistId) {
     album_id: track.albumId,
     name: track.name,
     duration: track.duration,
-    times_played: track.timesPlayed,
+    times_played: track.times_played,
     artist: `https://tarea-2-integracion.herokuapp.com/api/artists/${artistId}`,
-    album: `https://tarea-2-integracion.herokuapp.com/api/albums/${track.albumId}`,
+    album: `https://tarea-2-integracion.herokuapp.com/api/albums/${track.album_id}`,
     self: `https://tarea-2-integracion.herokuapp.com/api/tracks/${track.id}`,
   };
 };
