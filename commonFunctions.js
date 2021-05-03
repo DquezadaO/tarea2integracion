@@ -6,37 +6,34 @@ function serializedId(text) {
 
 function artistSerializer(artist) {
 	return {
-		ID: artist.id,
-	    Name: artist.name,
-	    Age: artist.age,
-	    Albums: `artists/${artist.id}/albums`,
-	    Tracks: `artists/${artist.id}/tracks`,
-	    Self: `artists/${artist.id}`,
+	    name: artist.name,
+	    age: artist.age,
+	    albums: `https://tarea-2-integracion.herokuapp.com/api/artists/${artist.id}/albums`,
+	    tracks: `https://tarea-2-integracion.herokuapp.com/api/artists/${artist.id}/tracks`,
+	    self: `https://tarea-2-integracion.herokuapp.com/api/artists/${artist.id}`,
 	};
 };
 
 function albumSerializer(album) {
   return {
-    ID: album.id,
-    Name: album.name,
-    Genre: album.genre,
-    Artist: `artists/${album.artistId}/albums`,
-    Tracks: `albums/${album.id}/tracks`,
-    Self: `albums/${album.id}`,
-    ArtistId: album.artistId,
+    name: album.name,
+    genre: album.genre,
+    artist: `https://tarea-2-integracion.herokuapp.com/api/artists/${album.artistId}/albums`,
+    tracks: `https://tarea-2-integracion.herokuapp.com/api/albums/${album.id}/tracks`,
+    self: `https://tarea-2-integracion.herokuapp.com/api/albums/${album.id}`,
+    artistId: album.artistId,
   };
 };
 
 function trackSerializer(track, artistId) {
   return {
-    id: track.id,
     album_id: track.albumId,
     name: track.name,
     duration: track.duration,
     times_played: track.timesPlayed,
-    artist: `artists/${artistId}`,
-    album: `albums/${track.albumId}`,
-    self: `tracks/${track.id}`,
+    artist: `https://tarea-2-integracion.herokuapp.com/api/artists/${artistId}`,
+    album: `https://tarea-2-integracion.herokuapp.com/api/albums/${track.albumId}`,
+    self: `https://tarea-2-integracion.herokuapp.com/api/tracks/${track.id}`,
   };
 };
 
@@ -44,5 +41,5 @@ module.exports = {
 	serializedId,
 	artistSerializer,
 	albumSerializer,
-	TrackSerializer
+	trackSerializer
 }

@@ -27,9 +27,9 @@ app.set('view engine', 'ejs')
 
 /* ARTISTS METHODS */
 
-app.get('/api/artists', async (req, res) => {
-  try {
-    const client = await pool.connect();
+app.get("/api/artists", async (req, res) => {
+  const client = await pool.connect();
+  try {  
     client.query('SELECT * FROM artists;').then(q => {
       const results = (q) ? q.rows : null;
       let response = [];
@@ -43,10 +43,10 @@ app.get('/api/artists', async (req, res) => {
   };
 });
 
-app.get('/api/artists/:artistId', async (req, res) => {
+app.get("/api/artists/:artistId", async (req, res) => {
+  const client = await pool.connect();
   try {
     const { artistId } = req.params;
-    const client = await pool.connect();
     client.query('SELECT * FROM artists;').then(q => {
       const results = (q) ? q.rows : null;
       let artist = {};
@@ -55,12 +55,11 @@ app.get('/api/artists/:artistId', async (req, res) => {
           artist = r;
         };
       });
-      if (artist == {}) {
+      if (artist.id == undefined) {
         return res.status(404).send('Artist Not Found');
       };
       const response = artistSerializer(artist);
       res.status(200).json(response);
-      client.release();
     });
   } catch (error) {
     return res.status(404).send('Artist Not Found');
@@ -69,10 +68,10 @@ app.get('/api/artists/:artistId', async (req, res) => {
   };
 });
 
-app.get('/api/artists/:artistId/albums', async (req, res) => {
+app.get("/api/artists/:artistId/albums", async (req, res) => {
+  const client = await pool.connect();
   try {
     const { artistId } = req.params;
-    const client = await pool.connect();
     client.query('SELECT * FROM artists;').then(q => {
       const results = (q) ? q.rows : null;
       let artist = {};
@@ -81,7 +80,7 @@ app.get('/api/artists/:artistId/albums', async (req, res) => {
           artist = r;
         };
       });
-      if (artist == {}) {
+      if (artist.id == undefined) {
         return res.status(404).send('Artist Not Found');
       } else {
         client.query('SELECT * FROM albums;').then(q => {
@@ -103,10 +102,10 @@ app.get('/api/artists/:artistId/albums', async (req, res) => {
   };
 });
 
-app.get('/api/artists/:artistId/tracks', async (req, res) => {
+app.get("/api/artists/:artistId/tracks", async (req, res) => {
+  const client = await pool.connect();
   try {
     const { artistId } = req.params;
-    const client = await pool.connect();
     client.query('SELECT * FROM artists;').then(q => {
       const results = (q) ? q.rows : null;
       let artist = {};
@@ -115,7 +114,7 @@ app.get('/api/artists/:artistId/tracks', async (req, res) => {
           artist = r;
         };
       });
-      if (artist == {}) {
+      if (artist.id == undefined) {
         return res.status(404).send('Artist Not Found');
       } else {
         client.query('SELECT * FROM albums').then(q => {
@@ -149,16 +148,15 @@ app.get('/api/artists/:artistId/tracks', async (req, res) => {
 });
 
 app.post("/api/artists", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     const { name, age } = req.body;
     if (name == undefined || age == undefined || typeof age != "number") {
       return res.status(400).send('Invalid Input');
     }
 
     const id = serializedId(name);
-    client.query('INSERT INTO artists VALUES($1, $2, $3) RETURNING *;', [id, name, age])
-    .then(q => {
+    client.query('SELECT * FROM artists;').then(q => {
       const results = (q) ? q.rows : null;
       let artist = {};
       results.forEach(r => {
@@ -166,11 +164,22 @@ app.post("/api/artists", async (req, res) => {
           artist = r;
         };
       });
-      const response = artistSerializer(artist);
-      res.status(201).json(response);
-    })
-    .catch(e => {
-      return res.status(409).json('Existing Artist');
+      if (artist.id != undefined) {
+        return res.status(409).json('Existing Artist');
+      } else {
+        client.query('INSERT INTO artists VALUES($1, $2, $3) RETURNING *;', [id, name, age])
+        .then(q => {
+          const results = (q) ? q.rows : null;
+          let artist = {};
+          results.forEach(r => {
+            if (r.id == id) {
+              artist = r;
+            };
+          });
+          const response = artistSerializer(artist);
+          res.status(201).json(response);
+        });
+      };
     });
   } catch (error) {
     return res.status(409).json('Existing Artist');
@@ -180,8 +189,8 @@ app.post("/api/artists", async (req, res) => {
 });
 
 app.post("/api/artists/:artistId/albums", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     const { artistId } = req.params;
     const { name, genre } = req.body;
     if (!name || !genre) {
@@ -213,9 +222,9 @@ app.post("/api/artists/:artistId/albums", async (req, res) => {
 });
 
 app.put("/api/artists/:artistId/albums/play", async (req, res) => {
+  const client = await pool.connect();
   try {
     const { artistId } = req.params;
-    const client = await pool.connect();
     client.query('SELECT * FROM artists;').then(q => {
       const results = (q) ? q.rows : null;
       let artist = {};
@@ -224,7 +233,7 @@ app.put("/api/artists/:artistId/albums/play", async (req, res) => {
           artist = r;
         };
       });
-      if (artist == {}) {
+      if (artist.id == undefined) {
         return res.status(404).send('Artist Not Found');
       } else {
         client.query(
@@ -243,13 +252,27 @@ app.put("/api/artists/:artistId/albums/play", async (req, res) => {
 });
 
 app.delete("/api/artists/:artistId", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     const { artistId } = req.params;
-    client.query('DELETE FROM artists WHERE id = $1;', [artistId]).then(q => {
-      res.status(204).send('Artist Deleted');
-    }).catch(e => {
-      res.status(404).send('Unexisting Artist');
+    if (artistId == undefined) {
+      res.status(404).send('Bad Request')
+    };
+    client.query('SELECT * FROM artists;').then(q => {
+      const results = (q) ? q.rows : null;
+      let artist = {};
+      results.forEach(r => {
+        if (r.id == artistId) {
+          artist = r;
+        };
+      });
+      if (artist.id == undefined) {
+        return res.status(404).send('Artist Not Found');
+      } else {
+        client.query('DELETE FROM artists WHERE id = $1;', [artistId]).then(q => {
+          res.status(204).send('Artist Deleted');
+        });
+      }
     });
   } catch (error) {
     res.status(404).send(error);
@@ -260,15 +283,14 @@ app.delete("/api/artists/:artistId", async (req, res) => {
 
 /* ALBUMS METHODS */
 
-app.get('/api/albums', async (req, res) => {
+app.get("/api/albums", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     client.query('SELECT * FROM albums;').then(q => {
       const results = (q) ? q.rows : null;
       let response = [];
       results.forEach(r => response.push(artistSerializer(r)));
       res.status(200).json(response);
-      client.release();
     });
   } catch (error) {
     res.status(404).send(error);
@@ -277,10 +299,10 @@ app.get('/api/albums', async (req, res) => {
   };
 });
 
-app.get('/api/albums/:albumId', async (req, res) => {
+app.get("/api/albums/:albumId", async (req, res) => {
+  const client = await pool.connect();
   try {
     const { albumId } = req.params;
-    const client = await pool.connect();
     client.query('SELECT * FROM albums;').then(q => {
       const results = (q) ? q.rows : null;
       let album = {};
@@ -289,12 +311,11 @@ app.get('/api/albums/:albumId', async (req, res) => {
           album = r;
         };
       });
-      if (album == {}) {
+      if (album.id == undefined) {
         return res.status(404).send('Album Not Found');
       };
       const response = albumSerializer(album);
       res.status(200).json(response);
-      client.release();
     });
   } catch (error) {
     return res.status(404).send('Album Not Found');
@@ -304,8 +325,8 @@ app.get('/api/albums/:albumId', async (req, res) => {
 });
 
 app.get("/api/albums/:albumId/tracks", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     const { albumId } = req.params;
     client.query('SELECT * FROM albums;').then(q => {
       const results = (q) ? q.rows : null;
@@ -315,7 +336,7 @@ app.get("/api/albums/:albumId/tracks", async (req, res) => {
           album = r;
         };
       });
-      if (album == {}) {
+      if (album.id == undefined) {
         return res.status(404).send('Album Not Found');
       } else {
         client.query('SELECT * FROM tracks;').then(q => {
@@ -323,7 +344,7 @@ app.get("/api/albums/:albumId/tracks", async (req, res) => {
           let response = [];
           results2.forEach(r => {
             if (albumId == r.album_id) {
-              tracks.push(trackSerializer(r));
+              response.push(trackSerializer(r));
             };
           });
           res.status(200).json(response);
@@ -338,8 +359,8 @@ app.get("/api/albums/:albumId/tracks", async (req, res) => {
 });
 
 app.post("/api/albums/:albumId/tracks", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     const { albumId } = req.params;
     const { name, duration, times_played } = req.body;
     if (!name || !duration) {
@@ -355,7 +376,7 @@ app.post("/api/albums/:albumId/tracks", async (req, res) => {
           album = r;
         };
       });
-      if (album == {}) {
+      if (album.id == undefined) {
         return res.status(422).send('Unexisting Album');
       } else {
         client.query('INSERT INTO tracks VALUES($1, $2, $3, $4, $5) RETURNING *;', [id, name, duration, times_played, albumId]).then(q => {
@@ -381,8 +402,8 @@ app.post("/api/albums/:albumId/tracks", async (req, res) => {
 });
 
 app.put("/api/albums/:albumId/tracks/play", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     const { albumId } = req.params;
     client.query('SELECT * FROM albums;').then(q => {
       const results = (q) ? q.rows : null;
@@ -392,7 +413,7 @@ app.put("/api/albums/:albumId/tracks/play", async (req, res) => {
           album = r;
         };
       });
-      if (album == {}) {
+      if (album.id == undefined) {
         return res.status(404).send('Album Not Found');
       } else {
         client.query(
@@ -411,8 +432,8 @@ app.put("/api/albums/:albumId/tracks/play", async (req, res) => {
 });
 
 app.delete("/api/albums/:albumId", async (req, res) => {
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     const { albumId } = req.params;
     client.query('DELETE FROM albums WHERE id = $1;', [albumId]).then(q => {
       res.status(204).send('Album Deleted');
@@ -428,41 +449,51 @@ app.delete("/api/albums/:albumId", async (req, res) => {
 
 /* TRACKS METHODS */
 
-app.get('/api/tracks', async (req, res) => {
+app.get("/api/tracks", async (req, res) => {
   const client = await pool.connect();
-  const query = client.query('SELECT * FROM tracks').then(q => {
-    const results = (q) ? q.rows : null;
-    let response = [];
-    results.forEach(r => response.push(trackSerializer(r)));
-    res.status(200).json(response);
+  try { 
+    const query = client.query('SELECT * FROM tracks').then(q => {
+      const results = (q) ? q.rows : null;
+      let response = [];
+      results.forEach(r => response.push(trackSerializer(r)));
+      res.status(200).json(response);
+    });
+  } catch (error) {
+    return res.status(404).send(error);
+  } finally {
     client.release();
-  });
+  };
 });
 
 app.get("/api/tracks/:trackId", async (req, res) => {
   const { trackId } = req.params;
   const client = await pool.connect();
-  const query = client.query('SELECT * FROM tracks').then (q => {
-    const results = (q) ? q.rows : null;
-    let track = {};
-    results.forEach(r => {
-      if (r.id == trackId) {
-        track = r;
+  try {
+    const query = client.query('SELECT * FROM tracks').then (q => {
+      const results = (q) ? q.rows : null;
+      let track = {};
+      results.forEach(r => {
+        if (r.id == trackId) {
+          track = r;
+        };
+      });
+      if (track.id == undefined) {
+        return res.status(404).send('Track Not Found');
       };
+      const response = trackSerializer(track);
+      res.status(200).json(response);
     });
-    if (track == {}) {
-      return res.status(404).send('Track Not Found');
-    };
-    const response = trackSerializer(track);
-    res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).send(error);
+  } finally {
     client.release();
-  });
+  };
 });
 
 app.put("/:trackId/play", async (req, res) => {
+  const client = await pool.connect();
   try {
     const { trackId } = req.params;
-    const client = await pool.connect();
 
     const query = client.query('SELECT * FROM tracks').then (q => {
       const results = (q) ? q.rows : null;
@@ -472,7 +503,7 @@ app.put("/:trackId/play", async (req, res) => {
           track = r;
         };
       });
-      if (track == {}) {
+      if (track.id == undefined) {
         return res.status(404).send('Track Not Found');
       } else {
         client.query(
@@ -491,9 +522,9 @@ app.put("/:trackId/play", async (req, res) => {
 });
 
 app.delete("/:trackId", async (req, res) => {
+  const client = await pool.connect();
   try {
     const { trackId } = req.params;
-    const client = await pool.connect();
     client.query('DELETE FROM tracks WHERE id = $1;', [trackId]).then(q => {
       res.status(204).send('Track Ereased');
     }).catch(e => {
